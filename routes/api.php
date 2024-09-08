@@ -9,4 +9,4 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::apiResource('note', NoteController::class);
+Route::apiResource('note', NoteController::class)->middleware('auth:sanctum');

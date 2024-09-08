@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\NoteResource;
 use App\Models\Note;
 use Illuminate\Http\Request;
 
@@ -12,15 +13,7 @@ class NoteController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return 'hello';
     }
 
     /**
@@ -28,7 +21,20 @@ class NoteController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'user_id' => 'required'
+        ]);
+
+        $product = Note::create([
+            'user_id' => $request->user_id,
+            'title' => $request->title,
+            'body' => $request->body
+        ]);
+
+        return response()->json([
+            'message' => 'Note successfully created.',
+            'data' => NoteResource::collection($product)
+        ]);
     }
 
     /**
