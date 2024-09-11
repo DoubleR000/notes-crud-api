@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\NoteResource;
 use App\Models\Note;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class NoteController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return 'hello';
+        return Note::where('user_id', Auth::user()->id)->get();
     }
 
     /**
@@ -22,19 +24,16 @@ class NoteController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required'
+            'title' => 'required|max:255',
+            'body' => 'required'
         ]);
 
-        $product = Note::create([
-            'user_id' => $request->user_id,
-            'title' => $request->title,
-            'body' => $request->body
-        ]);
+        $note = $request->user()->notes()->create($validated);
 
-        return response()->json([
+        return [
             'message' => 'Note successfully created.',
-            'data' => NoteResource::collection($product)
-        ]);
+            'data' => $note
+        ];
     }
 
     /**
@@ -42,15 +41,8 @@ class NoteController extends Controller
      */
     public function show(Note $note)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Note $note)
-    {
-        //
+        Gate::authorize('view', $note);
+        return $note;
     }
 
     /**
@@ -58,7 +50,19 @@ class NoteController extends Controller
      */
     public function update(Request $request, Note $note)
     {
-        //
+        Gate::authorize('update', $note);
+
+        $validated = $request->validate([
+            'title' => 'required|max:255',
+            'body' => 'required'
+        ]);
+
+        $note->update($validated);
+
+        return [
+            'message' => 'Note successfully updated',
+            'note' => $note
+        ];
     }
 
     /**
@@ -66,6 +70,9 @@ class NoteController extends Controller
      */
     public function destroy(Note $note)
     {
-        //
+        Gate::authorize('delete', $note);
+        $note->delete();
+
+        return ['message' => 'Note successfully deleted.'];
     }
 }
